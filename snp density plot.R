@@ -1,0 +1,13 @@
+install.packages("vcfR")
+library(vcfR)
+vcf <- read.vcfR(file.choose(), verbose = FALSE )
+fix <- getFIX(vcf)
+head(fix)   
+tail(fix)
+as.data.frame(fix)       
+out <- data.frame(id = fix[,3], chr = fix[,1], pos = fix[,2])
+write.table(out,"C:/Users/lingo1st/Desktop")
+install.packages("CMplot")
+library(CMplot)
+CMplot(out,plot.type="d",bin.size=100000,col=c("darkgreen", "yellow", "red"),file="jpg",memo="SNPdensity",dpi=300,
+       file.output=TRUE, verbose=TRUE,main="SNP density in rice within 0.1 Mb window size ")
