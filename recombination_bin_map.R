@@ -1,33 +1,48 @@
 library(qtl)
+install.packages("ABHgenotypeR")
 library(ABHgenotypeR)
-data <-  read.csv(paste0("C:/Users/lingo1st/Dropbox/林冠瑜/noisymputer result_2/imputation result/",chr,"/final_sample_plus_parent.",chr,"_imputed_chunks.txt")
-                  ,sep = " ")
+ind_name <- read.table("name.txt")
+colnames(ind_name) <- "id"
+temp <- data.frame(id = NA)
+ind_name <- rbind(temp,ind_name)
+snp_name <- c()
+###以tassel中abh genotype產出之csv檔為格式範例
+#column為snp,row為個體,rownames跟colnames都需要設定為個體與snp之名稱
+### column one為id，第一個值為NA，後面接個體名稱
+###row one為染色體數，同樣第一個值為NA，後面接染色體條數
+
 ####主要迴圈
 for (chr in 1:12) {
-  data <-  read.csv(paste0("C:/Users/lingo1st/Dropbox/林冠瑜/noisymputer result_2/imputation result/chr",chr,"/final_sample_plus_parent.chr",chr,"_imputed_chunks.txt")
-                    ,sep = " ")
-  ###data 前處理
-  p <- strsplit(data$genotypes,"")
-  for (i in 1:length(p)) {
-    for (j in 1:length(p[[1]])) {
-      data[i,j+2] <- p[[i]][j]
-    }
-  }
-  row_name <- data$X.
-  rownames(data) <- row_name
-  data <- data[,-1:-2]  %>% as.data.frame()
-  test_data <- t(data)%>% as.data.frame()
-  #整理成必要格式
-  rown <- rownames(data)
-  test <-  data.frame(matrix(nrow = 0,ncol = length(rown)))
-  test[1,] <- substr(rown,2,3)
-  colnames(test) <- rown
-  test2 <- rbind(test,test_data)
-  assign(paste0("geno_",chr),test2,envir = .GlobalEnv)
+  data <-  read.csv(paste0("C:/Users/lingo1st/Dropbox/林冠瑜/gbs_dataset_result/chr",chr,"/gbs_r.chr",chr,"_imputed_chunks.txt")
+                    ,sep = "\t")
+  ###
+  data <- data[-(1:7),]
+  
+  ##把snp名稱與基因型分開 (建立一個名為p的genotype 矩陣)
+  temp <- strsplit(data,split = " ")
+  snp_name <- sapply(temp,function(x){
+     x[1]
+  }) 
+  
+ p <- sapply(temp,function(x){
+    strsplit( x[2],split = "")
+  })
+ p <- unlist(p)
+ p <- matrix(p,nrow = 296 ,ncol = length(p)/296,byrow = F)
+ colnames(p) <- snp_name
+ ###多加染色體row
+ chromosome <- matrix(rep(chr,length(snp_name)),nrow = 1)
+ p <- rbind(chromosome, p)
+ ###
+ ind_name <- cbind(ind_name,p)
 }
-total <- cbind(geno_1,geno_2,geno_3,geno_4,geno_5,geno_6,geno_7,geno_8,geno_9,geno_10,
-               geno_11,geno_12)
-write.csv(total,"C:/Users/lingo1st/Desktop/data.csv",quote = TRUE)
+  
+
+
+  
+  
+
+write.csv(ind_name,"gbs_abhgenotype.csv",quote = TRUE)
 ##後續又再改成data_for_binmap.csv並移至imputation result資料夾中
-genotype <- readABHgenotypes("C:/Users/lingo1st/Desktop/data.csv", nameA = "NP", nameB = "IR64", readPos = TRUE)
+genotype <- readABHgenotypes("gbs_abhgenotype.csv", nameA = "Nipponbare", nameB = "IR64", readPos = TRUE)
 plotGenos(genotype)
