@@ -42,7 +42,7 @@ for (chr in 1:12) {
   
   
 
-write.csv(ind_name,"gbs_abhgenotype.csv",quote = TRUE)
+write.csv(ind_name,"gbs_abhgenotype.csv",quote = TRUE,row.names = F)
 ##後續又再改成data_for_binmap.csv並移至imputation result資料夾中
 genotype <- readABHgenotypes("gbs_abhgenotype.csv", nameA = "Nipponbare", nameB = "IR64", readPos = TRUE)
 plotGenos(genotype)
