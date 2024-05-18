@@ -50,53 +50,10 @@ co_event <- read.csv("C:/Users/lingo1st/Dropbox/林冠瑜/gbs_dataset_result/CO 
 
 
 
-###################### plot #############################
-chr_len <- c(43260640,35954074,36189985,35489479,29733216,30731386,29643843,28434680,22692709,22683701,28357783,27561960)
-p1 <- ggplot(data = breakpoint,aes(x = Chr,y=Pos/1000000))
-for (i in 1:12) {
- p1<- p1+
-  geom_point(size = 0.01)
- #geom_segment(x = i , y = 1, xend = i, yend = chr_len[i]/1000000)
-}
-p1 <- p1+scale_x_discrete(limits = c(1:12))+ylab("Position (Mb)")+xlab("Chromosome")
-p1
-####try to add violin plot
-p1 <- p1+ geom_violin(aes(x = Chr,y = Pos/1000000,group = Chr),fill = "orange",alpha = 0.2)
-####add centromere region
-cent_min <- c(15.445668,12.625206,17.883934,7.882,11.15,13.201,9.104,11.98,0.993,
-              7.62,11.34,11.06)
-cent_max <- c(18.05,15.48,20.51,10.06,13.54,17.84,12.71,14.41,3.93,8.69,13.5,
-              12.2)
-
-cent <- data.frame(xmin = seq(0.8,11.8,by = 1),xmax = seq(1.2,12.2,by = 1),ymin = cent_min,ymax = cent_max)
-p1 + geom_rect(aes(xmin = 0.8, xmax = 1.2, ymin = 15445668/1000000, ymax = 18052668/1000000),alpha = 0.5)
-for (i in 1:12) {
-  p1<- p1+
-  geom_rect(xmin = cent$xmin[i], xmax = cent$xmax[i], ymin = cent$ymin[i], ymax = cent$ymax[i],alpha = 0.5)
-}
-p1 
-  
-
-##### add hotspot
-for (i in 1:12) {
-  tmp <- get(paste0("hotspot_chr",i))
-  tmp$chr <- rep(i,time = nrow(tmp))
-  assign(paste0("hotspot_chr",i),tmp,envir = .GlobalEnv)
-}
-hotspot_df <- rbind(hotspot_chr1,hotspot_chr2,hotspot_chr3,hotspot_chr4,hotspot_chr5,hotspot_chr6,hotspot_chr7,
-                       hotspot_chr8,hotspot_chr9,hotspot_chr10,hotspot_chr11,hotspot_chr12)
-colnames(hotspot_df) <- c("CO number","start","end","chr")
-
-for (i in 1:nrow(hotspot_df)) {
-  p1<- p1+
-    geom_rect(xmin =hotspot_df$chr[i]-0.2 ,xmax =hotspot_df$chr[i]+0.2 , ymin = (hotspot_df$start[i]/1000000), ymax = (hotspot_df$end[i]/1000000),alpha = 0.1,fill = "red",alpha = 0.1)
-}
-p1
-
-
 
 
 ######## CO event vs chromosome length
+breakpoint <- read.csv("C:/Users/lingo1st/Dropbox/林冠瑜/gbs_dataset_result/csv file/gbs_breakpoint.csv",header = T)
 co <- breakpoint %>% 
   group_by(Chr) %>%
   summarise(total = n())
@@ -105,12 +62,16 @@ p2 <- ggplot(data = CO_length_df,aes(x = len/1000000,y=co))
 p2 + geom_point() + geom_smooth(method = lm,formula = y~x) + ylab("Amount of CO event")+
   xlab("Chromosome length (Mb)")
 cor(CO_length_df$len,CO_length_df$co)
+m1 <- lm(total~Chr,data = co)
+summary(m1)
+
 
 
 #######CO event vs SNP density (1Mb)
 vcf_chr1 <- read.vcfR("C:/Users/lingo1st/OneDrive/桌面/NOISYmputer/NOISYmputer_data/gbs_r.chr1.vcf",verbose = F)
 chr1_fix <- as.numeric( vcf_chr1@fix[,"POS"])
 ##每條染色體分區間計算裡面的co以及snp數
+chr_len <- c(43260640,35954074,36189985,35489479,29733216,30731386,29643843,28434680,22692709,22683701,28357783,27561960)
 snp_num <- c()
 co_num <- c()
 chr <- c()
@@ -136,5 +97,7 @@ p3 + geom_point() + geom_smooth(method = lm, formula = y~x)+
   xlab("SNP number within 1Mb interval") + ylab("CO number within 1Mb interval")
 cor(co_density_df$snp,co_density_df$co) 
 
+model1 <- lm(co~snp,data = co_density_df)
+summary(model1)
 ### 儲存資料
 write.csv(co_density_df, file = "co_vs_density.csv")
