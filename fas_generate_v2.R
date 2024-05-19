@@ -134,3 +134,40 @@ for (i in 178:198) {
                ref_data = data)
 }
 
+for (i in 1:93) {
+  fas_generate(chr = poisson_hotspot$chr[i],
+               position = round((poisson_hotspot$start[i]+poisson_hotspot$end[i])/2,0),
+               one_side_length = round((poisson_hotspot$start[i]+poisson_hotspot$end[i])/2,0) - poisson_hotspot$start[i],
+               vcf_name="gbs_r.chr",
+               vcf_reffas_path= "C:/Users/lingo1st/OneDrive/桌面/NOISYmputer/NOISYmputer_data",
+               ref_data = data)
+}
+
+####產生random區間
+
+ram_chr = c(sample(1:12,24,replace = T))
+ram_start <- c()
+for (i in 1:24) {
+  repeat {
+    position = as.numeric(sample(1000:length(data[[ram_chr[i]]]),1,replace = F))
+    
+    #如果position的位置沒有出現在熱點區間內，就停止抽取
+    if (  length(which(apply(hotspot_interval %>% filter(chr == i),1,function(x){
+      between(position,as.numeric(x[2]),as.numeric(x[3]))})))==0 ) {
+      cat("random site:",position,"\n")
+      ram_start <- c(ram_start,position)
+      break
+    } else {next}
+  }
+}
+
+ramdom_interval <- data.frame(chr = ram_chr, start = ram_start, end = ram_start+50000)
+for (i in 1:24) {
+  fas_generate(chr = ramdom_interval$chr[i],
+               position = round((ramdom_interval$start[i]+ramdom_interval$end[i])/2,0),
+               one_side_length = round((ramdom_interval$start[i]+ramdom_interval$end[i])/2,0) - ramdom_interval$start[i],
+               vcf_name="gbs_r.chr",
+               vcf_reffas_path= "C:/Users/lingo1st/OneDrive/桌面/NOISYmputer/NOISYmputer_data",
+               ref_data = data)
+}
+
