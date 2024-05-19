@@ -73,3 +73,6 @@ colnames(data_gt)
 length(het_whole[het_whole>5])
 #####
 write.csv(colnames(data_gt[,-1]), file = "C:/Users/lingo1st/Dropbox/林冠瑜/name.csv") 
+
+
+#########################
