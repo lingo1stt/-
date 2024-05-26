@@ -171,6 +171,7 @@ avg_r <- apply(random_diversity_value,1,function(x){
 #plot
 ####################################################################################################
 #trend
+plot.df <- read.csv("C:/Users/lingo1st/Dropbox/林冠瑜/gbs_dataset_result/csv file/nucleotide diversity/div_plot_df.csv",header = T)
 plot.df <- data.frame(value = c(avg_l,avg_p,avg_o,avg_r),
                       Type = rep(c("L","P","O","R"),time = c(10,10,10,10)),
                       position = rep(c("-50%","-40%","-30%","-20%","-10%",
@@ -181,7 +182,8 @@ p1 <- ggplot(data = plot.df,aes(x = position,y = value,fill= Type))
 p1 + geom_col(position = "dodge") + xlab("Relative position") + ylab("Nucleotide diversity") + 
   theme(
     text = element_text(size = 8)
-  )
+  )  + 
+  scale_x_discrete(limits = c("-50%","-40%","-30%","-20%","-10%","10%","20%","30%","40%","50%"))
 
 ##boxplot
 p2 <- ggplot(data = plot.df,aes(x = type,y = value))
