@@ -1,3 +1,4 @@
+library(dplyr)
 ####### 使用 gbs_breakpoint.csv
 data <- read.csv("C:/Users/lingo1st/Dropbox/林冠瑜/gbs_dataset_result/csv file/gbs_breakpoint.csv")
 
@@ -29,6 +30,7 @@ for (chromosome in 1:12) {
     
   }
 }
+hotspot <- hotspot %>% filter(chr == "1")
 recomb_counts <- hotspot$co_num
 ###########################zero-inflated poisson
 install.packages("psc1")
@@ -103,12 +105,13 @@ rpois()
 
 
 
-hist(recomb_counts, breaks = max(recomb_counts) - min(recomb_counts), probability = TRUE, 
-     main = "Histogram of Recombination Counts", xlab = "Recombination Count")
+
 
 # 泊松分布拟合
-
+hist(recomb_counts, breaks = max(recomb_counts) - min(recomb_counts), probability = TRUE, 
+     main = "Histogram of Recombination Counts", xlab = "Recombination Count")
 lambda_poisson <- mean(recomb_counts)
+lambda_poisson <- 1
 x <- 0:max(recomb_counts)
 pois_fit <- dpois(x, lambda_poisson)
 lines(x, pois_fit, type = "b", col = "red", lwd = 2)
