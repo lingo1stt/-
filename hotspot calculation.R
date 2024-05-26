@@ -119,17 +119,21 @@ sort_data[3831:3832,]
 ##########################
 #plot
 #############################
-poisson_hotspot <- read.csv("C:/Users/lingo1st/Dropbox/林冠瑜/gbs_dataset_result/csv file/gbs_adjusted_poisson_hotspot.csv",header = T)
+poisson_hotspot <- read.csv("C:/Users/lingo1st/Dropbox/林冠瑜/gbs_dataset_result/csv file/poisson hotspot/gbs_poisson_hotspot.csv",header = T)
 breakpoint <- read.csv("C:/Users/lingo1st/Dropbox/林冠瑜/gbs_dataset_result/csv file/gbs_breakpoint.csv",header = T)
 chr_len <- c(43260640,35954074,36189985,35489479,29733216,30731386,29643843,28434680,22692709,22683701,28357783,27561960)
-p1 <- ggplot(data = breakpoint,aes(x = Chr,y=Pos/1000000))
+breakpoint_2 <- breakpoint
+breakpoint_2$Chr <-breakpoint_2$Chr *2 -1
+p1 <- ggplot(data = breakpoint_2,aes(x = Chr,y=Pos/1000000))
 for (i in 1:12) {
   p1<- p1+
-    geom_point(size = 0.01)
+    geom_point(size = 0.01,position = position_dodge(width = 2))
   #geom_segment(x = i , y = 1, xend = i, yend = chr_len[i]/1000000)
 }
-p1 <- p1+scale_x_discrete(limits = c(1:12))+ylab("Position (Mb)")+xlab("Chromosome")
-p1
+p1 <- p1 +  scale_x_continuous(
+  breaks = seq(1, 23, by = 2),  # 原始 x 軸位置
+  labels = seq(1, 12, by = 1)   # 新的 x 軸標籤
+)+ylab("Position (Mb)")+xlab("Chromosome")
 ####try to add violin plot
 p1 <- p1+ geom_violin(aes(x = Chr,y = Pos/1000000,group = Chr),fill = "orange",alpha = 0.2)
 ####add centromere region
@@ -138,20 +142,54 @@ cent_min <- c(15.445668,12.625206,17.883934,7.882,11.15,13.201,9.104,11.98,0.993
 cent_max <- c(18.05,15.48,20.51,10.06,13.54,17.84,12.71,14.41,3.93,8.69,13.5,
               12.2)
 
-cent <- data.frame(xmin = seq(0.8,11.8,by = 1),xmax = seq(1.2,12.2,by = 1),ymin = cent_min,ymax = cent_max)
-p1 + geom_rect(aes(xmin = 0.8, xmax = 1.2, ymin = 15445668/1000000, ymax = 18052668/1000000),alpha = 0.5)
+cent <- data.frame(xmin = seq(1,23,by = 2)-0.3,xmax = seq(1,23,by = 2)+0.3,ymin = cent_min,ymax = cent_max)
 for (i in 1:12) {
   p1<- p1+
     geom_rect(xmin = cent$xmin[i], xmax = cent$xmax[i], ymin = cent$ymin[i], ymax = cent$ymax[i],alpha = 0.5)
 }
 p1 
-##### add hotspot
+##### add poisson hotspot
+poisson_hotspot$chr <- poisson_hotspot$chr*2-1
+poisson_hotspot$pos <- (poisson_hotspot$start+poisson_hotspot$end) / 2
 for (i in 1:nrow(poisson_hotspot)) {
   p1<- p1+
-    geom_rect(xmin =poisson_hotspot$chr[i]-0.1 ,xmax =poisson_hotspot$chr[i]+0.1 , ymin = (poisson_hotspot$start[i]/1000000), ymax = (poisson_hotspot$end[i]/1000000),alpha = 0.1,fill = "red",alpha = 0.1)
+    geom_rect(xmin =poisson_hotspot$chr[i]-0.25 ,xmax =poisson_hotspot$chr[i]+0.25 , ymin = (poisson_hotspot$start[i]/1000000), ymax = (poisson_hotspot$end[i]/1000000),alpha = 0.1,fill = "red",alpha = 0.1)
 }
+
 p1
 
+#########add local recomb rate
+install.packages("ggridges")
+library(ggridges)
+
+local_recomb <- read.table("C:/Users/lingo1st/Dropbox/林冠瑜/gbs_dataset_result/csv file/local_recomb_hotspot/gbs_local_recomb.txt",sep = " ",header = T)
+local_recomb$pos <- as.numeric(substr(local_recomb$map,4,nchar(local_recomb$map)) ) *2 -2
+p1 + geom_vridgeline(data = local_recomb %>%
+                       filter(pos==0),
+                     aes(x = pos,y = phys/1000000,width = spline/60),fill="lightblue",linewidth = 0.5)
+for (i in unique(local_recomb$pos)) {
+  p1 <- p1 + geom_vridgeline(data = local_recomb %>%
+                               filter(pos==i),
+                             aes(x = pos,y = phys/1000000,width = spline/60),linewidth = 0.3,fill = "lightblue")
+}
+p1
+###add local hotspot
+local_hotspot <- read.csv("C:/Users/lingo1st/Dropbox/林冠瑜/gbs_dataset_result/csv file/local_recomb_hotspot/gbs_nonoverlap_local_hotspot.csv",header = T)
+local_hotspot$chr <- local_hotspot$chr*2-1
+local_hotspot$pos <- (local_hotspot$start+local_hotspot$end)/2
+######geom_rect形式
+for (i in 1:nrow(local_hotspot)) {
+  p1<- p1+
+    geom_rect(xmin =local_hotspot$chr[i]-0.25 ,xmax =local_hotspot$chr[i]+0.25 , ymin = (local_hotspot$start[i]/1000000), ymax = (local_hotspot$end[i]/1000000),alpha = 0.1,fill = "red",alpha = 0.1,size = 0.8)
+}
+
+#########overlap hotspot
+overlap <- read.csv("C:/Users/lingo1st/Dropbox/林冠瑜/gbs_dataset_result/csv file/gbs_overlap_hotspot.csv",header = T)
+overlap$chr <- overlap$chr *2-1
+for (i in 1:nrow(overlap)) {
+  p1<- p1+
+    geom_rect(xmin =overlap$chr[i]-0.25 ,xmax =overlap$chr[i]+0.25 , ymin = (overlap$start[i]/1000000), ymax = (overlap$end[i]/1000000),alpha = 0.1,fill = "red",alpha = 0.1,size = 0.8)
+}
 #############################################################################################
 poisson_model <- glm(recomb_counts ~ 1, family = poisson)
 summary(poisson_model)
