@@ -41,7 +41,7 @@ for (chromosome in 1:12) {
     }
   }
 }
-
+dpois(1,0.2)
 write.csv(hotspot,file = "gbs_all_co.csv")
 
 ###比對
