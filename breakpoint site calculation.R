@@ -3,7 +3,7 @@ library(tidyverse)
 library(vcfR)
 getwd()
 ###使用abh_genotype.csv 計算 
-data <-  read.csv("C:/Users/lingo1st/Dropbox/林冠瑜/gbs_dataset_result/gbs_abhgenotype.csv",header = T)
+data <-  read.csv("C:/Users/lingo1st/Dropbox/林冠瑜/gbs_dataset_result/csv file/gbs_abhgenotype.csv",header = T)
 ###output格式為matrix，ncol為單條染色體最大之co數量，其他無法填入的位置即為na
 breakpoint <- data.frame(Chr = NA,Pos = NA)
 col_name <- rownames(data)
@@ -68,6 +68,7 @@ summary(m1)
 
 
 #######CO event vs SNP density (1Mb)
+library(vcfR)
 vcf_chr1 <- read.vcfR("C:/Users/lingo1st/OneDrive/桌面/NOISYmputer/NOISYmputer_data/gbs_r.chr1.vcf",verbose = F)
 chr1_fix <- as.numeric( vcf_chr1@fix[,"POS"])
 ##每條染色體分區間計算裡面的co以及snp數
@@ -80,14 +81,14 @@ for (i in 1:12) {
   temp_fix <-  as.numeric( temp_vcf@fix[,"POS"])
   temp_length <- chr_len[i]
   ###逐個區間計算
-  for (j in seq(1,temp_length,by = 1000000)) {
+  for (j in seq(1,temp_length,by = 100000)) {
     ##interval內snp數量
-    snp_num <- c(snp_num,length(which(temp_fix>j & temp_fix<j+1000000)) )
+    snp_num <- c(snp_num,length(which(temp_fix>j & temp_fix<j+100000)) )
     ##interval 內co數量
     temp_df <- breakpoint %>% filter(Chr == i)
-    co_num <- c(co_num, length(temp_df$Pos[temp_df$Pos>j & temp_df$Pos < j+1000000]) )
+    co_num <- c(co_num, length(temp_df$Pos[temp_df$Pos>j & temp_df$Pos < j+100000]) )
   }
-  chr <- c(chr,rep(i,length(seq(1,temp_length,by = 1000000))) )
+  chr <- c(chr,rep(i,length(seq(1,temp_length,by = 100000))) )
   
 }
 ###合併資料 + 繪圖
@@ -95,9 +96,11 @@ co_density_df <- data.frame(snp = snp_num,co = co_num,chr = chr)
 p3 <- ggplot(data = co_density_df, aes(x = snp, y = co))
 p3 + geom_point() + geom_smooth(method = lm, formula = y~x)+
   xlab("SNP number within 1Mb interval") + ylab("CO number within 1Mb interval")
-cor(co_density_df$snp,co_density_df$co) 
+
+
+cor.test(co_density_df$snp,co_density_df$co) 
 
 model1 <- lm(co~snp,data = co_density_df)
 summary(model1)
 ### 儲存資料
-write.csv(co_density_df, file = "co_vs_density.csv")
+write.csv(co_density_df, file = "co_vs_density(100kb).csv")
