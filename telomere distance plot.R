@@ -35,6 +35,13 @@ for (i in 1:12) {
   
 }
 final_df[which(final_df$spline < 0),"spline"] <- 0
+
+####調查最高區間(30-35%)
+final_df$telo_pos <- as.character(final_df$telo_pos)
+final_df %>% group_by(telo_pos) %>%
+  summarise(mean = mean(spline))
+
+
 ###plot
 p1 <- ggplot(data = final_df,aes(x = telo_pos,y = spline))
 p1 + geom_boxplot(outliers = F)+ stat_summary(fun.y=mean, geom="point", shape=16, size=4,col = "red") +  
@@ -69,6 +76,12 @@ for (i in 1:12) {
   
 }
 final_df[which(final_df$spline < 0),"spline"] <- 0
+
+####調查最高區間(30-35%)
+final_df$telo_pos <- as.character(final_df$telo_pos)
+final_df %>% group_by(telo_pos) %>%
+  summarise(mean = mean(spline))
+
 ####boxplot
 p2 <- ggplot(data = final_df,aes(x = telo_pos,y = spline))
 p2+ geom_boxplot(outliers = F)+ stat_summary(fun.y=mean, geom="point", shape=16, size=4,col = "red") +  
